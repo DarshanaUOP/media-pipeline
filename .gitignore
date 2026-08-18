@@ -1,0 +1,20 @@
+# Bytecode files
+*.pyc
+__pycache__/
+
+# Distribution files
+.DS_Store
+dist/
+build/
+eggs/
+sdist/
+wheels/
+*.egg-info/
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+
+# OS generated files
+.DS_Store
+
