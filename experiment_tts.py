@@ -1,25 +1,29 @@
-import os
-from pocket_tts import PocketTTS
+from functools import lru_cache
 
-def text_to_speech(text, output_filename="output.mp3", voice="en-US-Wavenet"):
+import scipy.io.wavfile
+from pocket_tts import TTSModel
+
+
+@lru_cache(maxsize=1)
+def load_tts_model():
+    return TTSModel.load_model()
+
+
+def text_to_speech(text, output_filename="output.wav", voice="alba"):
     """
-    Converts text into speech using the pocket-tts library and saves it as an MP3 file.
+    Converts text to speech using the pocket-tts library and saves it as a WAV file.
 
     Args:
         text (str): The text to convert to speech.
-        output_filename (str, optional): The name of the output MP3 file. Defaults to "output.mp3".
-        voice (str, optional): The voice to use.  Defaults to "en-US-Wavenet".
+        output_filename (str, optional): The name of the output WAV file. Defaults to "output.wav".
+        voice (str, optional): The voice name to use. Defaults to "alba".
     """
 
     try:
-        tts = PocketTTS(voice=voice) #initialize the tts object
-
-        # Convert text to speech
-        audio_data = tts.synthesize(text)
-
-        # Save audio data as an MP3 file
-        with open(output_filename, "wb") as f:
-            f.write(audio_data)
+        model = load_tts_model()
+        voice_state = model.get_state_for_audio_prompt(voice)
+        audio = model.generate_audio(voice_state, text)
+        scipy.io.wavfile.write(output_filename, model.sample_rate, audio.numpy())
 
         print(f"Successfully converted '{text}' to speech and saved it as '{output_filename}'.")
 
@@ -28,9 +32,8 @@ def text_to_speech(text, output_filename="output.mp3", voice="en-US-Wavenet"):
 
 
 if __name__ == "__main__":
-    # Example usage
     my_text = "Hello, this is a test of pocket-tts."
-    text_to_speech(my_text)  # Saves to output.mp3 using the default voice
+    text_to_speech(my_text)
 
-    my_text2 = "This is another example with a different voice - en-GB-Wavenet"
-    text_to_speech(my_text2, "another_output.mp3", "en-GB-Wavenet") # Saves to another_output.mp3 using specified voice
+    my_text2 = "This is another example with a different voice."
+    text_to_speech(my_text2, "another_output.wav", "anna")
